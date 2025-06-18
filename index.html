@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星际元素工厂 - 升级版</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Exo+2:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --space-dark: #0B0D26;
+            --space-light: #1A1C3D;
+            --star-yellow: #FFE81F;
+            --proton-red: #FF3A5E;
+            --neutron-blue: #3A9DFF;
+            --fusion-purple: #9D4EFF;
+            --success-green: #2ECC71;
+            --info-blue: #3498DB;
+            --warning-orange: #FFA500;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: var(--space-dark);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(154, 89, 255, 0.15) 0%, transparent 25%),
+                radial-gradient(circle at 80% 70%, rgba(255, 58, 94, 0.15) 0%, transparent 25%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="white" opacity="0.5"/></svg>');
+        }
+        
+        #game-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            padding: 20px;
+        }
+        
+        header {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+        }
+        
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, var(--star-yellow), var(--fusion-purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 15px rgba(157, 78, 255, 0.3);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .left-panel {
+            width: 250px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding-top: 80px;
+            position: relative;
+        }
+        
+        .particle-palette {
+            background: rgba(26, 28, 61, 0.7);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+        
+        .palette-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: var(--star-yellow);
+        }
+        
+        .particle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 10px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            user-select: none;
+        }
+        
+        .proton {
+            background: radial-gradient(circle at 30% 30%, var(--proton-red), #D12A4A);
+            box-shadow: 0 0 15px rgba(255, 58, 94, 0.5);
+            color: white;
+        }
+        
+        .neutron {
+            background: radial-gradient(circle at 30% 30%, var(--neutron-blue), #2A7FD1);
+            box-shadow: 0 0 15px rgba(58, 157, 255, 0.5);
+            color: white;
+        }
+        
+        .particle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px;
+        }
+        
+        .particle:active {
+            cursor: grabbing;
+        }
+        
+        .particle-count {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            background: white;
+            color: var(--space-dark);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .particle-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .particle-control-btn {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .center-panel {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 80px;
+        }
+        
+        .fusion-chamber {
+            width: 80%;
+            height: 80%;
+            background: rgba(11, 13, 38, 0.5);
+            border-radius: 15px;
+            border: 2px dashed rgba(255, 232, 31, 0.3);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(3px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .fusion-chamber.active {
+            border-color: var(--fusion-purple);
+            box-shadow: 0 0 30px rgba(157, 78, 255, 0.2);
+        }
+        
+        .particle-in-chamber {
+            position: absolute;
+            z-index: 3;
+        }
+        
+        .element-display {
+            position: absolute;
+            font-size: 5rem;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 4;
+            text-shadow: 0 0 20px currentColor;
+        }
+        
+        .right-panel {
+            width: 350px;
+            height: 100%;
+            padding-top: 80px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .element-selector {
+            background: rgba(26, 28, 61, 0.7);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+            max-height: 40%;
+            overflow-y: auto;
+        }
+        
+        .element-option {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .element-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .element-option.selected {
+            background: var(--info-blue);
+            font-weight: bold;
+        }
+        
+        .element-option.completed {
+            border-left: 4px solid var(--success-green);
+        }
+        
+        .element-option .symbol {
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .element-info-panel {
+            flex: 1;
+            background: rgba(26, 28, 61, 0.7);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .info-tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .info-tab.active {
+            opacity: 1;
+            border-bottom: 2px solid var(--star-yellow);
+        }
+        
+        .info-tab.locked {
+            color: rgba(255, 255, 255, 0.5);
+            cursor: not-allowed;
+        }
+        
+        .info-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        
+        .info-section {
+            display: none;
+        }
+        
+        .info-section.active {
+            display: block;
+        }
+        
+        .info-section h3 {
+            color: var(--star-yellow);
+            margin: 10px 0;
+            font-size: 1.2rem;
+        }
+        
+        .info-section p, .info-section ul {
+            margin-bottom: 10px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+        
+        .info-section ul {
+            padding-left: 20px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(45deg, var(--space-light), #2A2750);
+            color: white;
+            font-family: 'Exo 2', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .fuse-btn {
+            background: linear-gradient(45deg, var(--fusion-purple), #7B2CBF);
+            font-weight: bold;
+        }
+        
+        .reset-btn {
+            background: linear-gradient(45deg, #FF3A5E, #D12A4A);
+        }
+        
+        .star-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 2s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        
+        .fusion-effect {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(157, 78, 255, 0.8), transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(46, 204, 113, 0.9);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+        
+        .notification.error {
+            background: rgba(255, 58, 94, 0.9);
+        }
+        
+        .tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        
+        .tutorial-box {
+            background: linear-gradient(135deg, var(--space-light), #2A2750);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            text-align: center;
+            border: 1px solid rgba(255, 232, 31, 0.3);
+            box-shadow: 0 0 30px rgba(157, 78, 255, 0.3);
+        }
+        
+        .tutorial-box h2 {
+            color: var(--star-yellow);
+            margin-bottom: 20px;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .tutorial-box p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .tutorial-box button {
+            background: linear-gradient(45deg, var(--fusion-purple), #7B2CBF);
+            padding: 10px 25px;
+            font-size: 1rem;
+        }
+        
+        .particle-attraction {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--fusion-purple);
+            z-index: 2;
+            opacity: 0;
+        }
+        
+        .title-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(26, 28, 61, 0.7);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            width: 200px;
+        }
+        
+        .title-container h3 {
+            color: var(--star-yellow);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .title-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--fusion-purple);
+            margin-bottom: 5px;
+        }
+        
+        .title-description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .quiz-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        
+        .quiz-box {
+            background: linear-gradient(135deg, var(--space-light), #2A2750);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            text-align: center;
+            border: 1px solid rgba(255, 232, 31, 0.3);
+            box-shadow: 0 0 30px rgba(157, 78, 255, 0.3);
+        }
+        
+        .quiz-box h2 {
+            color: var(--star-yellow);
+            margin-bottom: 20px;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .quiz-question {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .quiz-option {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quiz-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .quiz-option.correct {
+            background: var(--success-green);
+        }
+        
+        .quiz-option.incorrect {
+            background: var(--proton-red);
+        }
+        
+        .quiz-result {
+            margin-top: 20px;
+            font-weight: bold;
+            min-height: 24px;
+        }
+        
+        .quiz-progress {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .quiz-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <header>
+            <h1>星际元素工厂</h1>
+            <p class="subtitle">在恒星核心的极端条件下创造元素，体验宇宙的炼金术</p>
+        </header>
+        
+        <div class="left-panel">
+            <div class="particle-palette">
+                <div class="palette-title">原子粒子</div>
+                <div class="particle proton" draggable="true" id="proton">p⁺
+                    <div class="particle-count" id="proton-count">1</div>
+                </div>
+                <div class="particle-controls">
+                    <button class="particle-control-btn" id="proton-decrease">-</button>
+                    <button class="particle-control-btn" id="proton-increase">+</button>
+                </div>
+                <div class="particle neutron" draggable="true" id="neutron">n⁰
+                    <div class="particle-count" id="neutron-count">1</div>
+                </div>
+                <div class="particle-controls">
+                    <button class="particle-control-btn" id="neutron-decrease">-</button>
+                    <button class="particle-control-btn" id="neutron-increase">+</button>
+                </div>
+            </div>
+            
+            <div class="title-container">
+                <h3>当前称号</h3>
+                <div class="title-name" id="current-title">星际学徒</div>
+                <div class="title-description" id="title-description">刚刚开始探索宇宙奥秘的新手</div>
+            </div>
+        </div>
+        
+        <div class="center-panel">
+            <div class="fusion-chamber" id="fusion-chamber">
+                <div class="element-display" id="element-display"></div>
+            </div>
+        </div>
+        
+        <div class="right-panel">
+            <div class="element-selector" id="element-selector">
+                <div class="element-option" data-element="hydrogen">
+                    <span><span class="symbol">H</span> - 氢</span>
+                    <span class="status"></span>
+                </div>
+                <div class="element-option" data-element="helium">
+                    <span><span class="symbol">He</span> - 氦</span>
+                    <span class="status"></span>
+                </div>
+                <div class="element-option" data-element="carbon">
+                    <span><span class="symbol">C</span> - 碳</span>
+                    <span class="status"></span>
+                </div>
+                <div class="element-option" data-element="nitrogen">
+                    <span><span class="symbol">N</span> - 氮</span>
+                    <span class="status"></span>
+                </div>
+                <div class="element-option" data-element="oxygen">
+                    <span><span class="symbol">O</span> - 氧</span>
+                    <span class="status"></span>
+                </div>
+                <div class="element-option" data-element="sodium">
+                    <span><span class="symbol">Na</span> - 钠</span>
+                    <span class="status"></span>
+                </div>
+                <div class="element-option" data-element="iron">
+                    <span><span class="symbol">Fe</span> - 铁</span>
+                    <span class="status"></span>
+                </div>
+                <div class="element-option" data-element="gold">
+                    <span><span class="symbol">Au</span> - 金</span>
+                    <span class="status"></span>
+                </div>
+            </div>
+            
+            <div class="element-info-panel">
+                <div class="info-tabs">
+                    <div class="info-tab active" data-tab="method">合成方法</div>
+                    <div class="info-tab locked" data-tab="condition">合成条件</div>
+                    <div class="info-tab locked" data-tab="science">科学原理</div>
+                    <div class="info-tab locked" data-tab="tips">科学小贴士</div>
+                </div>
+                
+                <div class="info-content">
+                    <div class="info-section active" data-section="method">
+                        <h3>合成配方</h3>
+                        <p id="method-content">请从左侧选择一个元素</p>
+                    </div>
+                    
+                    <div class="info-section" data-section="condition">
+                        <h3>所需条件</h3>
+                        <p id="condition-content">请先合成该元素以解锁信息</p>
+                    </div>
+                    
+                    <div class="info-section" data-section="science">
+                        <h3>科学原理</h3>
+                        <p id="science-content">请先合成该元素以解锁信息</p>
+                    </div>
+                    
+                    <div class="info-section" data-section="tips">
+                        <h3>科学小贴士</h3>
+                        <p id="tips-content">请先合成该元素以解锁信息</p>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="fuse-btn" id="fuse-btn" disabled>核聚变</button>
+                    <button class="reset-btn" id="reset-btn">重置</button>
+                    <button class="quiz-btn" id="quiz-btn" disabled>趣味问答</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="notification" id="notification">氦元素合成成功!</div>
+        
+        <div class="tutorial-overlay" id="tutorial">
+            <div class="tutorial-box">
+                <h2>欢迎来到星际元素工厂</h2>
+                <p>在恒星的核心，极端的高温和高压使得原子核能够克服电磁斥力并融合在一起，创造出更重的元素。</p>
+                <p>你的任务是:</p>
+                <ol style="text-align: left; margin: 20px auto; max-width: 300px;">
+                    <li>从右侧选择要合成的元素</li>
+                    <li>查看合成方法和条件</li>
+                    <li>调整粒子数量后拖拽到反应区</li>
+                    <li>点击"核聚变"按钮创造元素</li>
+                </ol>
+                <p>从氢开始，看看你能创造出多少种元素!</p>
+                <button id="start-btn">开始游戏</button>
+            </div>
+        </div>
+        
+        <div class="quiz-overlay" id="quiz-overlay">
+            <div class="quiz-box">
+                <h2>元素知识挑战</h2>
+                <div class="quiz-question" id="quiz-question"></div>
+                <div class="quiz-options" id="quiz-options"></div>
+                <div class="quiz-result" id="quiz-result"></div>
+                <div class="quiz-progress" id="quiz-progress"></div>
+                <div class="quiz-controls">
+                    <button id="quiz-next" style="display: none;">下一题</button>
+                    <button id="quiz-finish" style="display: none;">完成</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 游戏状态
+        const gameState = {
+            protons: 0,
+            neutrons: 0,
+            currentElement: null,
+            isFusing: false,
+            completedElements: [],
+            protonCount: 1,
+            neutronCount: 1,
+            quizQuestions: [],
+            currentQuizIndex: 0,
+            correctAnswers: 0,
+            titles: [
+                { name: "星际学徒", description: "刚刚开始探索宇宙奥秘的新手", threshold: 0 },
+                { name: "元素探索者", description: "成功合成了3种元素", threshold: 3 },
+                { name: "恒星炼金师", description: "成功合成了5种元素", threshold: 5 },
+                { name: "宇宙造物主", description: "成功合成了所有8种元素", threshold: 8 },
+                { name: "科学大师", description: "在趣味问答中答对5题以上", threshold: 10 }
+            ],
+            currentTitle: "星际学徒"
+        };
+        
+        // 元素数据 (已重命名为elementData)
+        const elementData = {
+            hydrogen: {
+                symbol: 'H',
+                name: '氢',
+                protons: 1,
+                neutrons: 0,
+                method: '拖拽 1个质子(p⁺) 到反应区',
+                condition: '最简单的元素，无需特殊条件',
+                science: '氢是宇宙中最简单、最丰富的元素，占可见物质的75%。它在大爆炸后不久就形成了。恒星通过核聚变将氢转化为更重的元素。',
+                tips: '1. 你身体中约60%的原子是氢原子，它们大多来自138亿年前的宇宙大爆炸!\n2. 氢是元素周期表中最轻的元素，原子序数为1。\n3. 在标准条件下，氢是一种无色、无味、无毒的双原子气体(H₂)。',
+                color: '#FF3A5E',
+                fact: "氢是宇宙中最丰富的元素，占可见物质的75%。"
+            },
+            helium: {
+                symbol: 'He',
+                name: '氦',
+                protons: 2,
+                neutrons: 2,
+                method: '拖拽 2个质子(p⁺) 和 2个中子(n⁰) 到反应区',
+                condition: '需要恒星内部的高温高压环境(约1500万度)',
+                science: '在恒星核心，通过质子-质子链反应将氢聚变为氦。两个氢核(质子)先融合成氘核，再与另一个质子形成氦-3，最后两个氦-3结合形成氦-4并释放两个质子。这个过程释放大量能量，是恒星发光发热的主要机制。',
+                tips: '1. 氦是宇宙中第二丰富的元素。地球上的氦气是放射性元素α衰变的产物。\n2. 氦的沸点是所有元素中最低的，仅为-268.9°C。\n3. 氦气比空气轻，常用于填充气球和飞艇。',
+                color: '#FF9D3A',
+                fact: "氦是宇宙中第二丰富的元素，占可见物质的23%。"
+            },
+            carbon: {
+                symbol: 'C',
+                name: '碳',
+                protons: 6,
+                neutrons: 6,
+                method: '拖拽 6个质子(p⁺) 和 6个中子(n⁰) 到反应区',
+                condition: '需要红巨星内部的高温高压(约1亿度)',
+                science: '在红巨星中通过三重α过程形成：三个氦核(α粒子)在极短时间内连续碰撞融合形成碳-12。这个过程需要特定的共振能级才能发生，否则恒星将无法产生足够的碳来支持生命。',
+                tips: '1. 碳是生命的基础元素。著名的碳-12共振能级被称为"生命的巧合"，如果稍有不同，宇宙中可能就不会有复杂的生命形式。\n2. 碳有几种同素异形体，包括石墨、金刚石和富勒烯。\n3. 碳化合物构成了所有已知生命的基础。',
+                color: '#3AFF9D',
+                fact: "碳是生命的基础元素，可以形成数百万种不同的化合物。"
+            },
+            nitrogen: {
+                symbol: 'N',
+                name: '氮',
+                protons: 7,
+                neutrons: 7,
+                method: '拖拽 7个质子(p⁺) 和 7个中子(n⁰) 到反应区',
+                condition: '需要大质量恒星内部的高温(约1.5亿度)',
+                science: '氮主要通过碳氮氧循环(CNO循环)在恒星中产生。在这个过程中，碳、氮和氧作为催化剂，将四个氢核融合成一个氦核。氮-14是这个循环中最稳定的同位素。',
+                tips: '1. 氮占地球大气的78%，是生命必需元素。\n2. 氮是氨基酸和蛋白质的关键组成部分。\n3. 液氮的沸点为-196°C，常用于低温保存。',
+                color: '#3A9DFF',
+                fact: "氮占地球大气的78%，是氨基酸和蛋白质的关键组成部分。"
+            },
+            oxygen: {
+                symbol: 'O',
+                name: '氧',
+                protons: 8,
+                neutrons: 8,
+                method: '拖拽 8个质子(p⁺) 和 8个中子(n⁰) 到反应区',
+                condition: '需要大质量恒星内部的高温(约2亿度)',
+                science: '在大质量恒星中，碳和氦核融合形成氧。这个过程称为α过程，氦核(α粒子)被逐步添加到更重的核上。氧-16是最常见的同位素，因其"双幻数"(质子和中子数都是8)而特别稳定。',
+                tips: '1. 氧是地壳中含量最多的元素。你每一次呼吸的氧气，都来自数十亿年前某颗恒星的内部!\n2. 氧是生命必需元素，参与细胞呼吸过程。\n3. 臭氧(O₃)是氧的同素异形体，能吸收有害的紫外线。',
+                color: '#9D4EFF',
+                fact: "氧是地壳中含量最多的元素，占地壳质量的46%。"
+            },
+            sodium: {
+                symbol: 'Na',
+                name: '钠',
+                protons: 11,
+                neutrons: 12,
+                method: '拖拽 11个质子(p⁺) 和 12个中子(n⁰) 到反应区',
+                condition: '需要新星爆炸的极端条件',
+                science: '钠主要通过新星爆炸中的碳燃烧过程产生。在极高温度下，两个碳核融合形成钠和其他元素。钠-23是唯一的稳定同位素。钠离子(Na⁺)在生物体内对神经传导和体液平衡至关重要。',
+                tips: '1. 钠是食盐(NaCl)的组成部分，对神经传导至关重要。\n2. 钠在空气中会迅速氧化，必须储存在油中。\n3. 钠的黄色焰色反应常用于街灯和烟花。',
+                color: '#FFE81F',
+                fact: "钠离子(Na⁺)在生物体内对神经传导和体液平衡至关重要。"
+            },
+            iron: {
+                symbol: 'Fe',
+                name: '铁',
+                protons: 26,
+                neutrons: 30,
+                method: '拖拽 26个质子(p⁺) 和 30个中子(n⁰) 到反应区',
+                condition: '需要超大质量恒星核心的极端条件(约10亿度)',
+                science: '铁是通过硅燃烧过程形成的：在恒星生命末期，硅核通过吸收氦核逐步融合，最终形成铁-56(最稳定的核素)。铁是恒星核合成能产生的最终元素，因为更重的元素需要吸收能量才能形成。铁积累到临界质量会导致恒星坍缩，引发超新星爆炸。',
+                tips: '1. 铁是恒星核合成的终点。当恒星核心积累足够多的铁时，就会引发超新星爆炸，产生更重的元素。你血液中的铁原子都来自远古的超新星!\n2. 铁是地核的主要成分，地球磁场由液态铁镍外核的运动产生。\n3. 铁是血红蛋白的关键成分，负责在血液中运输氧气。',
+                color: '#FF6347',
+                fact: "铁是恒星核合成的终点，更重的元素需要超新星爆炸才能形成。"
+            },
+            gold: {
+                symbol: 'Au',
+                name: '金',
+                protons: 79,
+                neutrons: 118,
+                method: '拖拽 79个质子(p⁺) 和 118个中子(n⁰) 到反应区',
+                condition: '需要中子星合并或超新星爆炸的极端条件',
+                science: '金等重元素主要通过r-过程(快速中子捕获)在中子星合并或超新星爆炸中形成。在这种极端条件下，原子核快速捕获自由中子，形成不稳定的重同位素，随后通过β衰变转化为稳定的金等元素。这个过程需要极高的中子通量，只能在宇宙中最剧烈的事件中发生。',
+                tips: '1. 地球上所有的金都来自远古的中子星合并事件!\n2. 金具有极佳的延展性，1克金可拉成3公里长的细丝。\n3. 金在人体内不活泼，可用于牙科和关节炎治疗。\n4. 海洋中含有约2000万吨溶解的金，但提取成本过高。',
+                color: '#FFD700',
+                fact: "地球上所有的金都来自远古的中子星合并或超新星爆炸事件。"
+            }
+        };
+        
+        // 问答数据
+        const quizData = [
+            {
+                question: "宇宙中最丰富的元素是什么？",
+                options: [
+                    { text: "氢", correct: true },
+                    { text: "氧", correct: false }
+                ],
+                element: "hydrogen"
+            },
+            {
+                question: "恒星通过什么过程将氢转化为氦？",
+                options: [
+                    { text: "质子-质子链反应", correct: true },
+                    { text: "核裂变反应", correct: false }
+                ],
+                element: "helium"
+            },
+            {
+                question: "为什么碳被称为'生命的巧合'？",
+                options: [
+                    { text: "因为碳-12有特定的共振能级", correct: true },
+                    { text: "因为碳是最重的元素", correct: false }
+                ],
+                element: "carbon"
+            },
+            {
+                question: "地球大气中含量最多的气体是什么？",
+                options: [
+                    { text: "氮", correct: true },
+                    { text: "氧", correct: false }
+                ],
+                element: "nitrogen"
+            },
+            {
+                question: "地壳中含量最多的元素是什么？",
+                options: [
+                    { text: "氧", correct: true },
+                    { text: "硅", correct: false }
+                ],
+                element: "oxygen"
+            },
+            {
+                question: "食盐(NaCl)中含有哪种金属元素？",
+                options: [
+                    { text: "钠", correct: true },
+                    { text: "钙", correct: false }
+                ],
+                element: "sodium"
+            },
+            {
+                question: "为什么铁被称为恒星核合成的终点？",
+                options: [
+                    { text: "因为更重的元素需要吸收能量才能形成", correct: true },
+                    { text: "因为铁是最稳定的元素", correct: false }
+                ],
+                element: "iron"
+            },
+            {
+                question: "地球上的金主要来自什么宇宙事件？",
+                options: [
+                    { text: "中子星合并或超新星爆炸", correct: true },
+                    { text: "太阳风带来的粒子", correct: false }
+                ],
+                element: "gold"
+            }
+        ];
+        
+        // DOM元素
+        const domElements = {
+            proton: document.getElementById('proton'),
+            neutron: document.getElementById('neutron'),
+            protonCount: document.getElementById('proton-count'),
+            neutronCount: document.getElementById('neutron-count'),
+            protonIncrease: document.getElementById('proton-increase'),
+            protonDecrease: document.getElementById('proton-decrease'),
+            neutronIncrease: document.getElementById('neutron-increase'),
+            neutronDecrease: document.getElementById('neutron-decrease'),
+            fusionChamber: document.getElementById('fusion-chamber'),
+            elementDisplay: document.getElementById('element-display'),
+            elementSelector: document.getElementById('element-selector'),
+            fuseBtn: document.getElementById('fuse-btn'),
+            resetBtn: document.getElementById('reset-btn'),
+            quizBtn: document.getElementById('quiz-btn'),
+            notification: document.getElementById('notification'),
+            tutorial: document.getElementById('tutorial'),
+            startBtn: document.getElementById('start-btn'),
+            quizOverlay: document.getElementById('quiz-overlay'),
+            quizQuestion: document.getElementById('quiz-question'),
+            quizOptions: document.getElementById('quiz-options'),
+            quizResult: document.getElementById('quiz-result'),
+            quizProgress: document.getElementById('quiz-progress'),
+            quizNext: document.getElementById('quiz-next'),
+            quizFinish: document.getElementById('quiz-finish'),
+            currentTitle: document.getElementById('current-title'),
+            titleDescription: document.getElementById('title-description'),
+            methodContent: document.getElementById('method-content'),
+            conditionContent: document.getElementById('condition-content'),
+            scienceContent: document.getElementById('science-content'),
+            tipsContent: document.getElementById('tips-content')
+        };
+        
+        // 初始化游戏
+        function initGame() {
+            updateParticleCounts();
+            createStarParticles();
+            setupEventListeners();
+            showTutorial();
+        }
+        
+        // 更新粒子计数显示
+        function updateParticleCounts() {
+            domElements.protonCount.textContent = gameState.protonCount;
+            domElements.neutronCount.textContent = gameState.neutronCount;
+        }
+        
+        // 创建背景星星粒子
+        function createStarParticles() {
+            const container = document.getElementById('game-container');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star-particle';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                star.style.width = `${Math.random() * 3 + 1}px`;
+                star.style.height = star.style.width;
+                container.appendChild(star);
+            }
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 粒子数量控制
+            domElements.protonIncrease.addEventListener('click', () => {
+                gameState.protonCount = Math.min(gameState.protonCount + 1, 10);
+                updateParticleCounts();
+            });
+            
+            domElements.protonDecrease.addEventListener('click', () => {
+                gameState.protonCount = Math.max(gameState.protonCount - 1, 1);
+                updateParticleCounts();
+            });
+            
+            domElements.neutronIncrease.addEventListener('click', () => {
+                gameState.neutronCount = Math.min(gameState.neutronCount + 1, 10);
+                updateParticleCounts();
+            });
+            
+            domElements.neutronDecrease.addEventListener('click', () => {
+                gameState.neutronCount = Math.max(gameState.neutronCount - 1, 1);
+                updateParticleCounts();
+            });
+            
+            // 粒子拖拽
+            domElements.proton.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', 'proton');
+                e.dataTransfer.setData('count', gameState.protonCount);
+                setTimeout(() => domElements.proton.style.opacity = '0.4', 0);
+            });
+            
+            domElements.neutron.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', 'neutron');
+                e.dataTransfer.setData('count', gameState.neutronCount);
+                setTimeout(() => domElements.neutron.style.opacity = '0.4', 0);
+            });
+            
+            domElements.proton.addEventListener('dragend', () => {
+                domElements.proton.style.opacity = '1';
+            });
+            
+            domElements.neutron.addEventListener('dragend', () => {
+                domElements.neutron.style.opacity = '1';
+            });
+            
+            // 反应区拖放
+            domElements.fusionChamber.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                domElements.fusionChamber.classList.add('active');
+            });
+            
+            domElements.fusionChamber.addEventListener('dragleave', () => {
+                domElements.fusionChamber.classList.remove('active');
+            });
+            
+            domElements.fusionChamber.addEventListener('drop', (e) => {
+                e.preventDefault();
+                domElements.fusionChamber.classList.remove('active');
+                
+                const type = e.dataTransfer.getData('text/plain');
+                const count = parseInt(e.dataTransfer.getData('count'));
+                
+                if (type === 'proton') {
+                    gameState.protons += count;
+                } else if (type === 'neutron') {
+                    gameState.neutrons += count;
+                }
+                
+                // 创建粒子视觉效果
+                for (let i = 0; i < count; i++) {
+                    createParticleInChamber(type, e.clientX, e.clientY);
+                }
+                
+                checkFusionReady();
+            });
+            
+            // 元素选择
+            document.querySelectorAll('.element-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    selectElement(option.dataset.element);
+                });
+            });
+            
+            // 信息标签切换
+            document.querySelectorAll('.info-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    if (tab.classList.contains('locked')) return;
+                    
+                    document.querySelectorAll('.info-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    const section = tab.dataset.tab;
+                    document.querySelectorAll('.info-section').forEach(s => s.classList.remove('active'));
+                    document.querySelector(`.info-section[data-section="${section}"]`).classList.add('active');
+                });
+            });
+            
+            // 按钮事件
+            domElements.fuseBtn.addEventListener('click', startFusion);
+            domElements.resetBtn.addEventListener('click', resetFusion);
+            domElements.quizBtn.addEventListener('click', startQuiz);
+            domElements.startBtn.addEventListener('click', closeTutorial);
+            domElements.quizNext.addEventListener('click', nextQuizQuestion);
+            domElements.quizFinish.addEventListener('click', finishQuiz);
+        }
+        
+        // 在反应区创建粒子视觉效果
+        function createParticleInChamber(type, x, y) {
+            const particle = document.createElement('div');
+            particle.className = `particle particle-in-chamber ${type}`;
+            
+            // 随机位置
+            const rect = domElements.fusionChamber.getBoundingClientRect();
+            const posX = x - rect.left - 30 + (Math.random() * 60 - 30);
+            const posY = y - rect.top - 30 + (Math.random() * 60 - 30);
+            
+            particle.style.left = `${posX}px`;
+            particle.style.top = `${posY}px`;
+            
+            particle.textContent = type === 'proton' ? 'p⁺' : 'n⁰';
+            
+            domElements.fusionChamber.appendChild(particle);
+            
+            // 添加吸引力效果
+            setTimeout(() => {
+                particle.style.transition = 'all 0.5s ease-out';
+                particle.style.transform = 'translate(0, 0)';
+            }, 100);
+        }
+        
+        // 检查是否可以开始聚变
+        function checkFusionReady() {
+            if (!gameState.currentElement) return;
+            
+            const element = elementData[gameState.currentElement];
+            if (gameState.protons >= element.protons && gameState.neutrons >= element.neutrons) {
+                domElements.fuseBtn.disabled = false;
+            } else {
+                domElements.fuseBtn.disabled = true;
+            }
+        }
+        
+        // 选择元素
+        function selectElement(elementName) {
+            // 清除之前的选择
+            document.querySelectorAll('.element-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // 设置新选择
+            const selectedOption = document.querySelector(`.element-option[data-element="${elementName}"]`);
+            selectedOption.classList.add('selected');
+            
+            gameState.currentElement = elementName;
+            const element = elementData[elementName];
+            
+            // 更新信息面板
+            domElements.methodContent.textContent = element.method;
+            
+            // 重置反应区
+            resetFusion();
+            
+            // 检查是否已完成该元素
+            if (gameState.completedElements.includes(elementName)) {
+                unlockElementInfo(elementName);
+            } else {
+                lockElementInfo();
+            }
+            
+            // 检查是否解锁问答按钮
+            if (gameState.completedElements.length === Object.keys(elementData).length) {
+                domElements.quizBtn.disabled = false;
+            }
+        }
+        
+        // 锁定元素信息
+        function lockElementInfo() {
+            document.querySelectorAll('.info-tab:not(:first-child)').forEach(tab => {
+                tab.classList.add('locked');
+            });
+            
+            domElements.conditionContent.textContent = '请先合成该元素以解锁信息';
+            domElements.scienceContent.textContent = '请先合成该元素以解锁信息';
+            domElements.tipsContent.textContent = '请先合成该元素以解锁信息';
+        }
+        
+        // 解锁元素信息
+        function unlockElementInfo(elementName) {
+            const element = elementData[elementName];
+            
+            document.querySelectorAll('.info-tab').forEach(tab => {
+                tab.classList.remove('locked');
+            });
+            
+            domElements.conditionContent.textContent = element.condition;
+            domElements.scienceContent.textContent = element.science;
+            domElements.tipsContent.innerHTML = element.tips.replace(/\n/g, '<br>');
+        }
+        
+        // 开始聚变
+        function startFusion() {
+            if (gameState.isFusing) return;
+            
+            const element = elementData[gameState.currentElement];
+            if (gameState.protons < element.protons || gameState.neutrons < element.neutrons) {
+                showNotification('粒子数量不足!', true);
+                return;
+            }
+            
+            gameState.isFusing = true;
+            domElements.fuseBtn.disabled = true;
+            
+            // 显示元素符号
+            domElements.elementDisplay.textContent = element.symbol;
+            domElements.elementDisplay.style.color = element.color;
+            domElements.elementDisplay.style.opacity = '1';
+            
+            // 创建聚变效果
+            createFusionEffect();
+            
+            // 检查是否成功
+            setTimeout(() => {
+                if (gameState.protons === element.protons && gameState.neutrons === element.neutrons) {
+                    // 成功
+                    showNotification(`${element.name}元素合成成功!`);
+                    
+                    if (!gameState.completedElements.includes(gameState.currentElement)) {
+                        gameState.completedElements.push(gameState.currentElement);
+                        document.querySelector(`.element-option[data-element="${gameState.currentElement}"]`).classList.add('completed');
+                        unlockElementInfo(gameState.currentElement);
+                        
+                        // 特殊提示
+                        if (gameState.currentElement === 'carbon') {
+                            showNotification('这是构成你身体的主要元素!');
+                        } else if (gameState.currentElement === 'iron') {
+                            showNotification('恒星生命终结于此，更重的元素需要超新星爆炸!');
+                        }
+                        
+                        // 更新称号
+                        updateTitle();
+                    }
+                } else {
+                    // 失败
+                    showNotification('合成失败!粒子比例不正确', true);
+                }
+                
+                // 重置
+                setTimeout(() => {
+                    domElements.elementDisplay.style.opacity = '0';
+                    resetFusion();
+                    gameState.isFusing = false;
+                }, 2000);
+            }, 1500);
+        }
+        
+        // 创建聚变效果
+        function createFusionEffect() {
+            // 清除所有粒子
+            document.querySelectorAll('.particle-in-chamber').forEach(particle => {
+                particle.remove();
+            });
+            
+            // 创建吸引力点
+            const rect = domElements.fusionChamber.getBoundingClientRect();
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const attraction = document.createElement('div');
+            attraction.className = 'particle-attraction';
+            attraction.style.left = `${centerX - 10}px`;
+            attraction.style.top = `${centerY - 10}px`;
+            domElements.fusionChamber.appendChild(attraction);
+            
+            // 动画
+            setTimeout(() => {
+                attraction.style.opacity = '0.8';
+                attraction.style.transform = 'scale(3)';
+                
+                setTimeout(() => {
+                    attraction.style.opacity = '0';
+                    attraction.style.transform = 'scale(0)';
+                    
+                    // 创建爆炸效果
+                    const effect = document.createElement('div');
+                    effect.className = 'fusion-effect';
+                    effect.style.left = `${centerX - 50}px`;
+                    effect.style.top = `${centerY - 50}px`;
+                    domElements.fusionChamber.appendChild(effect);
+                    
+                    setTimeout(() => {
+                        effect.style.opacity = '0.6';
+                        effect.style.transform = 'scale(5)';
+                        
+                        setTimeout(() => {
+                            effect.remove();
+                            attraction.remove();
+                        }, 1000);
+                    }, 50);
+                }, 500);
+            }, 50);
+        }
+        
+        // 重置反应区
+        function resetFusion() {
+            gameState.protons = 0;
+            gameState.neutrons = 0;
+            domElements.fuseBtn.disabled = true;
+            
+            document.querySelectorAll('.particle-in-chamber').forEach(particle => {
+                particle.remove();
+            });
+        }
+        
+        // 显示通知
+        function showNotification(message, isError = false) {
+            domElements.notification.textContent = message;
+            domElements.notification.className = isError ? 'notification error' : 'notification';
+            
+            domElements.notification.style.opacity = '1';
+            
+            setTimeout(() => {
+                domElements.notification.style.opacity = '0';
+            }, 3000);
+        }
+        
+        // 显示教程
+        function showTutorial() {
+            domElements.tutorial.style.display = 'flex';
+        }
+        
+        // 关闭教程
+        function closeTutorial() {
+            domElements.tutorial.style.display = 'none';
+            selectElement('hydrogen');
+        }
+        
+        // 开始问答
+        function startQuiz() {
+            // 筛选已解锁元素的问题
+            gameState.quizQuestions = quizData.filter(q => 
+                gameState.completedElements.includes(q.element)
+            );
+            
+            if (gameState.quizQuestions.length === 0) return;
+            
+            gameState.currentQuizIndex = 0;
+            gameState.correctAnswers = 0;
+            
+            showQuizQuestion();
+            domElements.quizOverlay.style.display = 'flex';
+        }
+        
+        // 显示问答问题
+        function showQuizQuestion() {
+            if (gameState.currentQuizIndex >= gameState.quizQuestions.length) {
+                finishQuiz();
+                return;
+            }
+            
+            const question = gameState.quizQuestions[gameState.currentQuizIndex];
+            
+            domElements.quizQuestion.textContent = question.question;
+            domElements.quizOptions.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'quiz-option';
+                optionElement.textContent = option.text;
+                optionElement.dataset.correct = option.correct;
+                
+                optionElement.addEventListener('click', () => {
+                    checkQuizAnswer(optionElement, option.correct);
+                });
+                
+                domElements.quizOptions.appendChild(optionElement);
+            });
+            
+            domElements.quizResult.textContent = '';
+            domElements.quizNext.style.display = 'none';
+            domElements.quizFinish.style.display = 'none';
+            
+            domElements.quizProgress.textContent = `问题 ${gameState.currentQuizIndex + 1}/${gameState.quizQuestions.length}`;
+        }
+        
+        // 检查问答答案
+        function checkQuizAnswer(optionElement, isCorrect) {
+            // 禁用所有选项
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+            
+            if (isCorrect) {
+                optionElement.classList.add('correct');
+                domElements.quizResult.textContent = '回答正确!';
+                gameState.correctAnswers++;
+            } else {
+                optionElement.classList.add('incorrect');
+                domElements.quizResult.textContent = '回答错误!';
+                
+                // 显示正确答案
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    if (opt.dataset.correct === 'true') {
+                        opt.classList.add('correct');
+                    }
+                });
+            }
+            
+            // 更新称号
+            updateTitle();
+            
+            if (gameState.currentQuizIndex < gameState.quizQuestions.length - 1) {
+                domElements.quizNext.style.display = 'block';
+            } else {
+                domElements.quizFinish.style.display = 'block';
+            }
+        }
+        
+        // 下一题
+        function nextQuizQuestion() {
+            gameState.currentQuizIndex++;
+            showQuizQuestion();
+        }
+        
+        // 完成问答
+        function finishQuiz() {
+            domElements.quizOverlay.style.display = 'none';
+            
+            const score = Math.round((gameState.correctAnswers / gameState.quizQuestions.length) * 100);
+            showNotification(`问答完成! 得分: ${score}%`);
+        }
+        
+        // 更新称号
+        function updateTitle() {
+            // 检查元素合成称号
+            let newTitle = gameState.titles[0];
+            
+            for (let i = gameState.titles.length - 1; i >= 0; i--) {
+                if (gameState.completedElements.length >= gameState.titles[i].threshold) {
+                    newTitle = gameState.titles[i];
+                    break;
+                }
+            }
+            
+            // 检查问答称号
+            if (gameState.correctAnswers >= 5 && gameState.titles[4].threshold > newTitle.threshold) {
+                newTitle = gameState.titles[4];
+            }
+            
+            if (gameState.currentTitle !== newTitle.name) {
+                gameState.currentTitle = newTitle.name;
+                domElements.currentTitle.textContent = newTitle.name;
+                domElements.titleDescription.textContent = newTitle.description;
+                showNotification(`获得新称号: ${newTitle.name}!`);
+            }
+        }
+        
+        // 启动游戏
+        initGame();
+    });
+</script>
